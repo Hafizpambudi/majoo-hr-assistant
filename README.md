@@ -225,7 +225,7 @@ Worth it: Indonesian policy terms are often exact tokens ("carry over", "BPJS",
 "PPh 21") that dense embeddings blur into the surrounding semantics.
 
 **LLM judge in the loop.** A verify pass adds a second model call per answer and
-dominates the latency budget: p50 is 15 s, and roughly 40% of that is the verify
+dominates the latency budget: p50 is 18 s, and roughly 40% of that is the verify
 node. Accepted because the failure mode here is a confident wrong answer about
 someone's leave entitlement, which is worse than a slow answer. An unparsable
 judge output is treated as a pass, so a checker bug degrades to no-checker
@@ -358,5 +358,5 @@ are identical; `GROQ_MODEL` switches models.
   the eval: retrieval is scoped to `majo-hr`. Re-run `python -m scripts.ingest`
   to fill it in; resume skips what is already there.
 - Groq's free tier caps `gpt-oss-120b` at 200k tokens per day, which is roughly
-  one full eval run. A second run in the same day fails fast with
-  `DailyQuotaExhausted` instead of stalling on backoff.
+  one full eval run. A second key buys a separate budget; once the whole pool is
+  spent the client raises `DailyQuotaExhausted` instead of stalling on backoff.
