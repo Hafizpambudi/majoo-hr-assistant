@@ -310,7 +310,7 @@ switches models; the graph, prompts, and tools are unchanged.
   resolved against the previous turn.
 - English and Indonesian are supported; other languages fall back to whatever
   the embedder does.
-- The index holds all 87 first-party chunks plus 1800 of 2266 third-party
+- The index holds all 87 first-party chunks plus 1713 of 2179 third-party
   chunks. The remainder is unindexed because the Gemini free tier caps embedding
   at 1000 content items per day and the run was interrupted. It does not affect
   the eval: retrieval is scoped to `majo-hr`. Re-run `python -m scripts.ingest`
