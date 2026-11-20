@@ -1,0 +1,19 @@
+# --- agent / graph ---
+langgraph>=0.2.60
+langchain-core>=0.3.30
+langchain-groq>=0.2.3
+langchain-mcp-adapters>=0.1.0
+mcp>=1.8.0
+
+# --- embeddings ---
+google-genai>=1.0.0
+
+# --- vector store ---
+psycopg[binary]>=3.2.3
+pgvector>=0.3.6
+
+# --- config / cli ---
+pydantic>=2.9.0
+pydantic-settings>=2.6.0
+python-dotenv>=1.0.1
+rich>=13.9.0

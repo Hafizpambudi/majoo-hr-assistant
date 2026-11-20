@@ -1,0 +1,124 @@
+{
+  "employees": {
+    "EMP-001": {
+      "employee_id": "EMP-001",
+      "name": "Andi Pratama",
+      "email": "andi.pratama@majo.example",
+      "department": "Engineering",
+      "job_title": "Engineering Manager",
+      "manager_id": "EMP-900",
+      "join_date": "2021-03-15",
+      "employment_type": "permanent",
+      "leave": {
+        "year": 2026,
+        "annual_entitlement": 12,
+        "annual_used": 5,
+        "annual_pending": 1,
+        "carry_over_from_last_year": 3,
+        "carry_over_expiry": "2026-06-30",
+        "sick_used": 2,
+        "unlimited_sick_leave": false
+      }
+    },
+    "EMP-002": {
+      "employee_id": "EMP-002",
+      "name": "Siti Rahmawati",
+      "email": "siti.rahmawati@majo.example",
+      "department": "Engineering",
+      "job_title": "Backend Engineer",
+      "manager_id": "EMP-001",
+      "join_date": "2022-08-01",
+      "employment_type": "permanent",
+      "leave": {
+        "year": 2026,
+        "annual_entitlement": 12,
+        "annual_used": 12,
+        "annual_pending": 0,
+        "carry_over_from_last_year": 0,
+        "carry_over_expiry": null,
+        "sick_used": 0,
+        "unlimited_sick_leave": false
+      }
+    },
+    "EMP-003": {
+      "employee_id": "EMP-003",
+      "name": "Budi Santoso",
+      "email": "budi.santoso@majo.example",
+      "department": "Engineering",
+      "job_title": "QA Engineer",
+      "manager_id": "EMP-001",
+      "join_date": "2023-01-09",
+      "employment_type": "contract",
+      "leave": {
+        "year": 2026,
+        "annual_entitlement": 12,
+        "annual_used": 4,
+        "annual_pending": 0,
+        "carry_over_from_last_year": 1,
+        "carry_over_expiry": "2026-03-31",
+        "sick_used": 1,
+        "unlimited_sick_leave": false
+      }
+    },
+    "EMP-004": {
+      "employee_id": "EMP-004",
+      "name": "Dewi Lestari",
+      "email": "dewi.lestari@majo.example",
+      "department": "People Operations",
+      "job_title": "HR Business Partner",
+      "manager_id": "EMP-900",
+      "join_date": "2020-06-22",
+      "employment_type": "permanent",
+      "leave": {
+        "year": 2026,
+        "annual_entitlement": 14,
+        "annual_used": 3,
+        "annual_pending": 0,
+        "carry_over_from_last_year": 2,
+        "carry_over_expiry": "2026-06-30",
+        "sick_used": 0,
+        "unlimited_sick_leave": false
+      }
+    },
+    "EMP-005": {
+      "employee_id": "EMP-005",
+      "name": "Rangga Wijaya",
+      "email": "rangga.wijaya@majo.example",
+      "department": "People Operations",
+      "job_title": "Recruiter",
+      "manager_id": "EMP-004",
+      "join_date": "2024-02-05",
+      "employment_type": "permanent",
+      "leave": {
+        "year": 2026,
+        "annual_entitlement": 12,
+        "annual_used": 6,
+        "annual_pending": 2,
+        "carry_over_from_last_year": 0,
+        "carry_over_expiry": null,
+        "sick_used": 3,
+        "unlimited_sick_leave": false
+      }
+    },
+    "EMP-900": {
+      "employee_id": "EMP-900",
+      "name": "Maya Kusuma",
+      "email": "maya.kusuma@majo.example",
+      "department": "Executive",
+      "job_title": "Chief Operating Officer",
+      "manager_id": null,
+      "join_date": "2019-11-04",
+      "employment_type": "permanent",
+      "leave": {
+        "year": 2026,
+        "annual_entitlement": 18,
+        "annual_used": 2,
+        "annual_pending": 0,
+        "carry_over_from_last_year": 5,
+        "carry_over_expiry": "2026-06-30",
+        "sick_used": 0,
+        "unlimited_sick_leave": true
+      }
+    }
+  }
+}
