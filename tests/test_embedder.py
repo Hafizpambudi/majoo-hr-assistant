@@ -160,3 +160,32 @@ def test_provider_selection():
     assert isinstance(
         build_embedder(Settings(embedding_provider="local")), LocalHashEmbedder
     )
+
+
+def test_concurrent_embedding_does_not_retire_every_key():
+    # Ragas embeds from worker threads. Without a lock, two threads can each see
+    # a 429 and each rotate, retiring the whole pool from one rate-limit event.
+    import threading
+
+    dead = _FakeClient(_quota_error("quota exceeded per day, limit: 1000"))
+    embedder = _embedder(clients=[dead, _FakeClient()])
+
+    results, errors = [], []
+
+    def worker():
+        try:
+            results.append(embedder.embed_query("cuti"))
+        except Exception as exc:  # noqa: BLE001 - recorded for assertion
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker) for _ in range(6)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    # One key is genuinely dead, one is healthy: every call must have succeeded
+    # and only the dead key may be retired.
+    assert errors == []
+    assert len(results) == 6
+    assert embedder._exhausted == {0}

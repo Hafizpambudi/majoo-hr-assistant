@@ -41,7 +41,7 @@ flowchart TD
 | Component | Choice | Why |
 |---|---|---|
 | Orchestration | LangGraph | The harness is the deliverable. Named nodes give per-step traces and a hard step cap; a ReAct string loop hides both. |
-| LLM | Groq `openai/gpt-oss-120b` | Native tool calling, ~1-2 s latency, generous free tier. OpenRouter is wired as a fallback so a provider outage does not kill the demo. The free tier limits both tokens per minute and tokens per day, so the client backs off on the per-minute cap and fails fast on the per-day cap instead of stalling on a budget that will not return. `GROQ_MODEL` switches to `gpt-oss-20b`, which has a separate daily budget. |
+| LLM | Groq `openai/gpt-oss-120b` | Native tool calling, ~1-2 s latency, generous free tier. OpenRouter is wired as a fallback so a provider outage does not kill the demo. The free tier limits both tokens per minute and tokens per day: the client backs off on the per-minute cap, rotates to the next key on a per-day cap, and only fails once the whole pool is spent. `GROQ_MODEL` switches to `gpt-oss-20b`, which has a separate daily budget. |
 | Embeddings | Gemini `gemini-embedding-2` | Corpus mixes Bahasa Indonesia and English; measured on this corpus it separates a matching query from an off-topic one (matching 0.69-0.82, off-topic 0.61), which is what makes the refusal gate trustworthy. Truncated to 1536 dims via MRL to stay inside the pgvector HNSW 2000-dim limit. |
 | Vector store | pgvector (Postgres 16) | One database for vectors and (eventually) relational employee data, HNSW cosine index, no extra service to operate. Chroma/FAISS are easier to start but do not survive the move to production. |
 | Retrieval | dense + lexical, fused with RRF | HR questions mix paraphrase ("boleh enggak cuti dipindah?") with exact terms ("BPJS", "PPh 21"). Dense alone misses exact terms; lexical alone misses paraphrase. RRF needs no weight tuning. |
@@ -72,14 +72,26 @@ app/
     prompts.py              one narrow prompt per decision
     tracing.py              JSONL span tracing
 data/docs/                  corpus (GitLab handbook + Majoo policy docs)
+data/docs/ATTRIBUTION.md    source and license for both corpus halves
 data/golden/qa.jsonl        25 labelled questions
 eval/run_eval.py            deterministic + Ragas evaluation
+eval/report.md              committed output of the last eval run
 scripts/fetch_corpus.py     corpus downloader
 scripts/ingest.py           chunk -> embed -> index
 tests/                      offline tests (no network, no DB)
 ```
 
 ## 3. Running it
+
+Three commands to a working demo (87 first-party chunks, ~2 minutes of embedding):
+
+```bash
+docker compose up -d
+python -m scripts.ingest --prefix majo-hr
+python -m app.cli ask "berapa sisa cuti EMP-001 dan boleh dipindah ke tahun depan?"
+```
+
+Full setup:
 
 ```bash
 # 1. dependencies
@@ -107,6 +119,11 @@ pytest
 python -m eval.run_eval --ragas
 python -m eval.run_eval --from-results   # rescore saved answers, no agent rerun
 ```
+
+The full index is 2266 chunks and takes roughly three days on the Gemini free
+tier, which caps embedding at 1000 content items per day. `--prefix majo-hr`
+indexes only the 7 first-party policy documents, and that is all the agent needs:
+retrieval is scoped to `majo-hr` by default.
 
 If `GEMINI_API_KEY_1` is unavailable, set `EMBEDDING_PROVIDER=local` to run the
 pipeline with a deterministic offline embedder (quality is much lower; it exists
@@ -194,7 +211,8 @@ run still contains the documents the golden set tests.
 
 **Retrieval is scoped to first-party documents by default.** The corpus is two
 sources: 7 synthetic Majo policy documents and 63 pages of the public GitLab
-handbook. The handbook is real and messy, which is useful for testing chunking,
+handbook (CC BY-SA 4.0, see `data/docs/ATTRIBUTION.md`). The handbook is real and
+messy, which is useful for testing chunking,
 but it describes a different company in different countries and contains HR
 policy that directly contradicts Majo's. Retrieval against the unscoped index
 answered "berapa lama cuti melahirkan?" with Denmark's 4 weeks instead of Majo's
@@ -251,8 +269,14 @@ through the full graph and reports:
 `--ragas` adds faithfulness, answer relevancy, and context precision using the
 same LLM as judge. `--from-results` re-scores `eval/results.json` without
 re-running the agent, which matters when the provider is rate limited.
+`--ragas-limit N` scores only the first N answered questions, and
+`--ragas-metrics` picks a subset: answer relevancy needs one embedding call per
+sample, so it is skipped when the Gemini daily cap is spent.
 
-### Measured result (25 questions, `gemini-embedding-2`, `gpt-oss-120b`)
+The committed run in `eval/report.md` is the source of every number below; a
+reviewer does not have to re-run a quota-limited pipeline to check them.
+
+### Measured result (25 questions, `gemini-embedding-2`, `gpt-oss-20b`)
 
 | Metric | Value |
 |---|---|
@@ -261,7 +285,26 @@ re-running the agent, which matters when the provider is rate limited.
 | false_answer_rate | 0.00 |
 | false_refusal_rate | 0.00 |
 | citation_rate | 1.00 (19 documented answers) |
-| latency p50 / p95 | 15.0 s / 18.2 s |
+| latency p50 / p95 | 17.9 s / 22.4 s |
+
+### Ragas (10-answer subset, `gpt-oss-20b` judge)
+
+| Metric | Value | Scored |
+|---|---|---|
+| faithfulness | 0.675 | 10/10 |
+| context_precision | 0.575 | 10/10 |
+
+Answer relevancy is implemented but left out of this run: it needs one Gemini
+embedding per sample, and the daily embedding budget was already spent. The
+subset is the first 10 answered questions; `--ragas-limit` and
+`--ragas-metrics` produce it.
+
+Treat these as a judge-scored smoke signal, not ground truth. Faithfulness 0.68
+says about a third of the claims the judge parsed were not fully supported by
+the retrieved chunks; context precision 0.58 says the useful chunk is often not
+ranked first. Both point at the same lever: a five-chunk window over
+900-character chunks is loose. Narrowing the window or adding a reranker is the
+next experiment, and 10 samples is too few to tune a threshold on.
 
 Three defects were found by running this, not by reading the code:
 
@@ -277,12 +320,10 @@ Three defects were found by running this, not by reading the code:
 Two more were found in the harness itself: the Gemini embedder collapsed a
 90-text batch into one vector, and a Groq 429 aborted a 25-question run.
 
-The table above is the last complete 25-question run. The two cosmetic fixes
-after it (field names and transport ids leaking into answers) were verified on
-`openai/gpt-oss-20b`, because the free tier caps `gpt-oss-120b` at 200k tokens
-per day and that run had spent it. Both fixes are also covered by unit tests, so
-the live check was confirmation rather than the only evidence. `GROQ_MODEL`
-switches models; the graph, prompts, and tools are unchanged.
+The table above is the committed 25-question run, produced on
+`openai/gpt-oss-20b`: `gpt-oss-120b` hit its 200k token/day free budget during
+development and the 20b model has a separate pool. The graph, prompts, and tools
+are identical; `GROQ_MODEL` switches models.
 
 ### What to add before production
 
@@ -304,8 +345,9 @@ switches models; the graph, prompts, and tools are unchanged.
 - `employees.json` is a stub, not a real HRIS.
 - No authentication or per-user data scoping; a real deployment must enforce
   that an employee can only read their own balance and their own reports.
-- Corpus is GitLab's public handbook plus synthetic Majoo policies; it is not a
-  real Majoo document set.
+- Corpus is GitLab's public handbook (CC BY-SA 4.0, see
+  `data/docs/ATTRIBUTION.md`) plus synthetic Majoo policies; it is not a real
+  Majoo document set.
 - Single-turn only. Follow-ups like "kalau saya ambil minggu depan?" are not
   resolved against the previous turn.
 - English and Indonesian are supported; other languages fall back to whatever

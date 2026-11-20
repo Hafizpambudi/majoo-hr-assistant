@@ -173,15 +173,19 @@ def deterministic_report(rows: list[dict]) -> dict:
     }
 
 
-def run_ragas(rows: list[dict]) -> dict:
+def run_ragas(
+    rows: list[dict],
+    limit: int | None = None,
+    metric_filter: str | None = None,
+) -> dict:
     try:
-        from ragas import EvaluationDataset, SingleTurnSample, evaluate
+        from ragas import EvaluationDataset, RunConfig, SingleTurnSample, evaluate
         from ragas.embeddings.base import BaseRagasEmbeddings
         from ragas.llms import LangchainLLMWrapper
         from ragas.metrics import (
-            answer_relevancy,
-            context_precision,
-            faithfulness,
+            AnswerRelevancy,
+            ContextPrecision,
+            Faithfulness,
         )
     except ImportError as exc:
         console.print(f"[yellow]Ragas unavailable: {exc}[/]")
@@ -217,24 +221,93 @@ def run_ragas(rows: list[dict]) -> dict:
         for r in rows
         if not r["refused"]
     ]
+    if limit:
+        samples = samples[:limit]
     if not samples:
         return {}
 
     dataset = EvaluationDataset(samples=samples)
-    result = evaluate(
-        dataset=dataset,
-        metrics=[faithfulness, answer_relevancy, context_precision],
-        llm=LangchainLLMWrapper(build_llm()),
-        embeddings=EmbedderAdapter(),
+    # Ragas drives the judge through the LangChain model interface, so it needs
+    # the raw BaseChatModel. Our retry wrapper is not a chat model subclass and
+    # would fail on `agenerate_prompt`. ChatGroq's own max_retries covers the
+    # per-minute 429s that Ragas can hit while scoring 25 answers.
+    #
+    # Three Groq constraints shaped these settings:
+    #   * answer_relevancy asks for `strictness` generations per sample (3 by
+    #     default). Groq rejects n > 1 with a 400, so strictness drops to 1.
+    #   * gpt-oss reasons before answering. A judge prompt over five retrieved
+    #     chunks ran out of budget mid-thought (LLMDidNotFinishException), so
+    #     reasoning effort is lowered.
+    #   * the fallback key is capped at 8k tokens per minute, so the judge gets
+    #     the last key in the pool and a token ceiling that fits one request.
+    base = build_llm(with_retry=False, key_index=-1)
+    overrides = {
+        "max_tokens": 1536,
+        "reasoning_effort": "low",
+        "max_retries": 8,
+        "timeout": 180,
+    }
+    judge_model = (
+        base.model_copy(update=overrides) if hasattr(base, "model_copy") else base
     )
-    return {k: round(float(v), 3) for k, v in result.to_pandas().mean(numeric_only=True).items()}
+    judge = LangchainLLMWrapper(judge_model)
+    metrics = [
+        Faithfulness(),
+        AnswerRelevancy(strictness=1, embeddings=EmbedderAdapter(), llm=judge),
+        ContextPrecision(),
+    ]
+    if metric_filter is not None:
+        keep = {name.strip() for name in metric_filter.split(",") if name.strip()}
+        metrics = [m for m in metrics if m.name in keep]
+    if not metrics:
+        return {}
+    try:
+        result = evaluate(
+            dataset=dataset,
+            metrics=metrics,
+            llm=judge,
+            embeddings=EmbedderAdapter(),
+            # One worker: the free tier meters tokens per minute, and Ragas
+            # prompts carry five retrieved chunks each. Concurrency just moves
+            # the 429 from the request to the retry loop.
+            run_config=RunConfig(timeout=300, max_workers=1),
+        )
+    except Exception as exc:  # noqa: BLE001 - a spent quota is not a crash
+        console.print(f"[yellow]Ragas scoring aborted: {type(exc).__name__}[/]")
+        return {}
+    frame = result.to_pandas()
+    metric_names = ["faithfulness", "answer_relevancy", "context_precision"]
+    scores: dict = {}
+    for name in metric_names:
+        if name in frame.columns:
+            # Ragas averages over the samples it managed to score. A mean
+            # without its denominator hides a run that only scored half the set,
+            # and a spent embedding quota drops answer_relevancy rows silently.
+            scores[name] = round(float(frame[name].mean()), 3)
+            scores[f"{name}_scored"] = int(frame[name].notna().sum())
+    scores["total_samples"] = len(samples)
+    return scores
 
 
-def write_report(rows: list[dict], metrics: dict, ragas: dict) -> Path:
+def write_report(
+    rows: list[dict],
+    metrics: dict,
+    ragas: dict,
+    run: dict | None = None,
+) -> Path:
     path = OUT_DIR / "report.md"
 
+    from app.config import get_settings
+
+    settings = get_settings()
+    run = run or {}
+    model = run.get("model", settings.groq_model)
+    embeddings = run.get("embeddings", settings.embedding_model)
     lines = [
         "# Evaluation report",
+        "",
+        f"Model `{model}`, embeddings `{embeddings}` "
+        f"({settings.embedding_dim}d), retrieval scope `{settings.source_scope or 'all'}`.",
         "",
         "## Deterministic metrics",
         "",
@@ -244,14 +317,34 @@ def write_report(rows: list[dict], metrics: dict, ragas: dict) -> Path:
         "",
     ]
     if ragas:
+        total = ragas.get("total_samples", 0)
+        names = [
+            name
+            for name in ("faithfulness", "answer_relevancy", "context_precision")
+            if name in ragas
+        ]
         lines += [
             "## Ragas metrics (answered questions only)",
             "",
-            "| metric | value |",
-            "|---|---|",
-            *[f"| {k} | {v} |" for k, v in ragas.items()],
+            "| metric | value | scored |",
+            "|---|---|---|",
+            *[
+                f"| {name} | {ragas[name]} | {ragas.get(f'{name}_scored', 0)}/{total} |"
+                for name in names
+            ],
             "",
         ]
+        partial = [
+            name
+            for name in names
+            if ragas.get(f"{name}_scored", 0) < total
+        ]
+        if partial:
+            lines += [
+                f"`{', '.join(partial)}` did not score every sample; the audit "
+                "trail is in `eval/results.json`.",
+                "",
+            ]
     lines += [
         "## Per question",
         "",
@@ -267,18 +360,28 @@ def write_report(rows: list[dict], metrics: dict, ragas: dict) -> Path:
     ]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     (OUT_DIR / "results.json").write_text(
-        json.dumps({"metrics": metrics, "ragas": ragas, "rows": rows}, indent=2, ensure_ascii=False),
+        json.dumps(
+            {"run": run, "metrics": metrics, "ragas": ragas, "rows": rows},
+            indent=2,
+            ensure_ascii=False,
+        ),
         encoding="utf-8",
     )
     return path
 
 
 async def main_async(args) -> None:
+    from app.config import get_settings
+
+    settings = get_settings()
+    run = {"model": settings.groq_model, "embeddings": settings.embedding_model}
     if args.from_results:
         # Re-score saved answers instead of re-running the agent. Ragas is the
         # expensive part and the answers do not change between scoring runs.
         saved = json.loads((OUT_DIR / "results.json").read_text(encoding="utf-8"))
         rows = saved["rows"]
+        # Keep the provenance of the answers, which may predate this run.
+        run = saved.get("run") or run
         console.print(f"[bold]rescoring {len(rows)} saved answers[/]")
     else:
         items = load_golden(args.limit)
@@ -290,12 +393,23 @@ async def main_async(args) -> None:
     metrics = deterministic_report(rows)
     console.print(json.dumps(metrics, indent=2))
 
-    ragas_metrics = run_ragas(rows) if (args.ragas or args.from_results) else {}
+    ragas_metrics = (
+        run_ragas(rows, limit=args.ragas_limit, metric_filter=args.ragas_metrics)
+        if args.ragas
+        else {}
+    )
     if ragas_metrics:
         console.print(json.dumps(ragas_metrics, indent=2))
 
-    path = write_report(rows, metrics, ragas_metrics)
+    path = write_report(rows, metrics, ragas_metrics, run)
     console.print(f"[green]report written: {path}[/]")
+
+    # Ragas leaves httpx transports for the garbage collector. Collecting them
+    # while the loop is alive avoids "__del__ ... Event loop is closed" noise
+    # after a run that actually succeeded.
+    import gc
+
+    gc.collect()
 
     thresholds = {"refusal_accuracy": 0.9, "tool_routing_accuracy": 0.85}
     failed = [
@@ -310,6 +424,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--ragas", action="store_true")
+    parser.add_argument(
+        "--ragas-limit",
+        type=int,
+        default=None,
+        help="score only the first N answered questions with Ragas",
+    )
+    parser.add_argument(
+        "--ragas-metrics",
+        default=None,
+        help="comma separated subset of faithfulness,answer_relevancy,context_precision",
+    )
     parser.add_argument(
         "--from-results",
         action="store_true",

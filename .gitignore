@@ -5,7 +5,9 @@ __pycache__/
 
 .env
 traces/
-eval/report.md
-eval/results.json
 eval_*.txt
 ingest_*.txt
+
+# eval/report.md and eval/results.json are committed on purpose: they are the
+# evidence behind the numbers in the README, and a reviewer should not have to
+# re-run a quota-limited pipeline to check them.

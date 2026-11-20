@@ -75,3 +75,19 @@ def test_daily_cap_is_detected_from_the_provider_message():
 def test_bind_tools_stays_retry_wrapped():
     wrapped = RateLimitedLLM(_Flaky(0, _Boom("x"))).bind_tools([])
     assert isinstance(wrapped, RateLimitedLLM)
+
+
+def test_daily_cap_rotates_to_the_next_key():
+    # A spent daily budget is recoverable if another key has its own budget.
+    dead = _Flaky(99, _Boom("rate limit on tokens per day (TPD)", status_code=429))
+    healthy = _Flaky(0, _Boom("unused"))
+    llm = RateLimitedLLM([dead, healthy])
+    assert llm.invoke("prompt") == "ok"
+    assert dead.calls == 1
+    assert healthy.calls == 1
+
+
+def test_daily_cap_raises_when_every_key_is_spent():
+    dead = _Flaky(99, _Boom("rate limit on tokens per day (TPD)", status_code=429))
+    with pytest.raises(DailyQuotaExhausted):
+        RateLimitedLLM([dead, dead]).invoke("prompt")

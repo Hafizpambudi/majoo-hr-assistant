@@ -31,22 +31,41 @@ class RateLimitedLLM:
 
     The Groq free tier limits both tokens per minute and tokens per day, and a
     single eval run issues hundreds of calls across 25 questions. A per-minute
-    cap deserves a backoff; a per-day cap does not, so it raises immediately
-    instead of stalling for minutes on a budget that will not return.
+    cap deserves a backoff; a per-day cap does not, so the pool rotates to the
+    next key and only raises once every key is spent.
     """
 
-    def __init__(self, inner: BaseChatModel, max_attempts: int = 6) -> None:
-        self._inner = inner
+    def __init__(
+        self,
+        models: BaseChatModel | list[BaseChatModel],
+        max_attempts: int = 6,
+    ) -> None:
+        self._models = list(models) if isinstance(models, (list, tuple)) else [models]
+        if not self._models:
+            raise ValueError("RateLimitedLLM needs at least one model")
+        self._index = 0
+        self._exhausted: set[int] = set()
         self._max_attempts = max_attempts
+
+    def _rotate(self) -> bool:
+        self._exhausted.add(self._index)
+        for offset in range(1, len(self._models) + 1):
+            candidate = (self._index + offset) % len(self._models)
+            if candidate not in self._exhausted:
+                self._index = candidate
+                return True
+        return False
 
     def _retry(self, fn, *args: Any, **kwargs: Any):
         delay = 5.0
         for attempt in range(1, self._max_attempts + 1):
             try:
-                return fn(*args, **kwargs)
+                return fn(self._models[self._index], *args, **kwargs)
             except Exception as exc:  # noqa: BLE001 - provider errors vary
                 if not _is_rate_limit(exc):
                     raise
+                if _is_daily_cap(str(exc)) and self._rotate():
+                    continue
                 if _is_daily_cap(str(exc)):
                     raise DailyQuotaExhausted(str(exc)) from exc
                 if attempt == self._max_attempts:
@@ -56,16 +75,18 @@ class RateLimitedLLM:
         raise RuntimeError("unreachable")  # pragma: no cover
 
     def invoke(self, *args: Any, **kwargs: Any) -> BaseMessage:
-        return self._retry(self._inner.invoke, *args, **kwargs)
+        return self._retry(lambda m, *a, **k: m.invoke(*a, **k), *args, **kwargs)
 
     async def ainvoke(self, *args: Any, **kwargs: Any) -> BaseMessage:
         delay = 5.0
         for attempt in range(1, self._max_attempts + 1):
             try:
-                return await self._inner.ainvoke(*args, **kwargs)
+                return await self._models[self._index].ainvoke(*args, **kwargs)
             except Exception as exc:  # noqa: BLE001 - provider errors vary
                 if not _is_rate_limit(exc):
                     raise
+                if _is_daily_cap(str(exc)) and self._rotate():
+                    continue
                 if _is_daily_cap(str(exc)):
                     raise DailyQuotaExhausted(str(exc)) from exc
                 if attempt == self._max_attempts:
@@ -75,45 +96,55 @@ class RateLimitedLLM:
         raise RuntimeError("unreachable")  # pragma: no cover
 
     def bind_tools(self, tools: Any, **kwargs: Any):
-        bound = self._inner.bind_tools(tools, **kwargs)
+        bound = [m.bind_tools(tools, **kwargs) for m in self._models]
         return RateLimitedLLM(bound, self._max_attempts)
 
     @property
     def inner(self) -> BaseChatModel:
-        return self._inner
+        return self._models[self._index]
 
 
 def build_llm(
     settings: Settings | None = None,
     temperature: float = 0.0,
     with_retry: bool = True,
+    key_index: int = 0,
 ) -> BaseChatModel:
     """Groq is the default. OpenRouter is the drop-in fallback so a provider
-    outage does not take the demo down."""
+    outage does not take the demo down.
+
+    `key_index` picks the key a raw caller gets; the retrying wrapper gets the
+    whole pool and rotates on its own.
+    """
     settings = settings or get_settings()
 
-    model: BaseChatModel | None = None
-    if settings.groq_api_key:
-        model = ChatGroq(
-            model=settings.groq_model,
-            api_key=settings.groq_api_key,
-            temperature=temperature,
-            max_retries=3,
-            timeout=60,
-        )
+    models: list[BaseChatModel] = []
+    if settings.groq_api_keys:
+        for key in settings.groq_api_keys:
+            models.append(
+                ChatGroq(
+                    model=settings.groq_model,
+                    api_key=key,
+                    temperature=temperature,
+                    max_retries=1,
+                    timeout=60,
+                )
+            )
     elif settings.openrouter_api_key:
         import langchain_openai
 
         os.environ.setdefault("OPENROUTER_API_KEY", settings.openrouter_api_key)
         chat_cls = getattr(langchain_openai, "Chat" + "Open" + "AI")
-        model = chat_cls(
-            model="openai/gpt-oss-120b",
-            base_url="https://openrouter.ai/api/v1",
-            temperature=temperature,
-            max_retries=3,
-            timeout=60,
+        models.append(
+            chat_cls(
+                model="openai/gpt-oss-120b",
+                base_url="https://openrouter.ai/api/v1",
+                temperature=temperature,
+                max_retries=3,
+                timeout=60,
+            )
         )
 
-    if model is None:
+    if not models:
         raise RuntimeError("No LLM credentials found. Set GROQ_API_KEY in .env.")
-    return RateLimitedLLM(model) if with_retry else model
+    return RateLimitedLLM(models) if with_retry else models[key_index]

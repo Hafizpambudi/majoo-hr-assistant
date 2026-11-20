@@ -1,0 +1,679 @@
+{
+  "run": {
+    "model": "openai/gpt-oss-20b",
+    "embeddings": "gemini-embedding-2"
+  },
+  "metrics": {
+    "questions": 25,
+    "tool_routing_accuracy": 1.0,
+    "refusal_accuracy": 1.0,
+    "false_answer_rate": 0.0,
+    "false_refusal_rate": 0.0,
+    "citation_rate": 1.0,
+    "documented_answers": 19,
+    "latency_p50_ms": 17946.5,
+    "latency_p95_ms": 22402.2
+  },
+  "ragas": {
+    "faithfulness": 0.675,
+    "faithfulness_scored": 10,
+    "context_precision": 0.575,
+    "context_precision_scored": 10,
+    "total_samples": 10
+  },
+  "rows": [
+    {
+      "id": "Q01",
+      "question": "Berapa sisa cuti saya?",
+      "answer": "Sisa cuti tahunan Anda adalah **9 hari**.  \nAnda telah menggunakan 5 hari cuti dan masih ada 1 hari yang sedang diproses.  \nSelain itu, Anda dapat membawa 3 hari cuti dari tahun sebelumnya yang akan berakhir pada 30 Juni 2026.",
+      "reference": "Sisa cuti bergantung pada data kepegawaian: kuota 12 hari ditambah carry over 3 hari dikurangi cuti terpakai 5 hari dan 1 hari pending.",
+      "contexts": [],
+      "retrieved": [],
+      "expected_tools": [
+        "get_leave_balance"
+      ],
+      "called_tools": [
+        "get_leave_balance"
+      ],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": false,
+      "tool_only": true,
+      "latency_ms": 6041.5,
+      "run_id": "20261120T022933-b42ea8"
+    },
+    {
+      "id": "Q02",
+      "question": "Berapa sisa cuti EMP-002?",
+      "answer": "Sisa cuti EMP-002 adalah 0 hari.  \n- Cuti tahunan yang telah digunakan adalah 12 hari.  \n- Tidak ada cuti tahunan yang tersisa.",
+      "reference": "EMP-002 telah memakai 12 dari 12 hari cuti tahunan, sehingga sisa cuti 0 hari.",
+      "contexts": [],
+      "retrieved": [],
+      "expected_tools": [
+        "get_leave_balance"
+      ],
+      "called_tools": [
+        "get_leave_balance"
+      ],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": false,
+      "tool_only": true,
+      "latency_ms": 5552.5,
+      "run_id": "20261120T022939-321f68"
+    },
+    {
+      "id": "Q03",
+      "question": "Siapa saja bawahan langsung EMP-001?",
+      "answer": "Bawahan langsung EMP-001 adalah:\n\n- Siti Rahmawati, Backend Engineer, Engineering, permanent  \n- Budi Santoso, QA Engineer, Engineering, contract",
+      "reference": "Bawahan langsung EMP-001 adalah EMP-002 dan EMP-003.",
+      "contexts": [],
+      "retrieved": [],
+      "expected_tools": [
+        "get_subordinat_list"
+      ],
+      "called_tools": [
+        "get_subordinat_list"
+      ],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": false,
+      "tool_only": true,
+      "latency_ms": 5962.4,
+      "run_id": "20261120T022944-80a895"
+    },
+    {
+      "id": "Q04",
+      "question": "Berapa sisa cuti dan bolehkah sisanya dipindah ke tahun depan?",
+      "answer": "Sisa cuti tahunan Anda adalah **13 hari**.  \nAnda dapat memindahkan **maksimal 5 hari** ke tahun berikutnya, asalkan diajukan sebelum 20 Desember dan harus digunakan paling lambat 30 Juni tahun depan. [2][4]",
+      "reference": "Sisa cuti dicek lewat data kepegawaian; carry over maksimal 5 hari dan harus dipakai sebelum 30 Juni.",
+      "contexts": [
+        "Sisa cuti berbeda per karyawan dan berubah setiap ada pengajuan yang disetujui. Angkanya tidak dicantumkan di dokumen ini. Sisa cuti dicek melalui sistem HRIS atau dengan meminta asisten HR menampilkan saldo cuti untuk employee ID Anda.",
+        "Bisa, maksimal 5 hari, dan harus diajukan sebelum 20 Desember. Cuti carry over harus dipakai paling lambat 30 Juni tahun berikutnya, setelah itu hangus.",
+        "Sisa cuti bersifat dinamis dan berubah setiap kali pengajuan disetujui. Angka sisa cuti tidak ditulis di dokumen kebijakan ini karena berubah per karyawan.\n\nKaryawan mengecek sisa cuti melalui sistem HRIS, atau dengan menanyakan kepada asisten HR yang terhubung ke data kepegawaian. Asisten HR dapat menampilkan kuota, cuti terpakai, cuti pending, dan carry over yang masih berlaku untuk satu employee ID.",
+        "Sisa cuti tahunan maksimal 5 hari dapat dibawa ke tahun berikutnya (carry over). Carry over tidak berlaku otomatis: karyawan harus mengajukan permohonan carry over sebelum 20 Desember tahun berjalan melalui sistem HRIS.\n\nCuti carry over wajib digunakan paling lambat 30 Juni tahun berikutnya. Setelah tanggal tersebut, sisa carry over hangus dan tidak dapat diuangkan. Pengecualian hanya diberikan bila karyawan sedang menjalani cuti melahirkan atau cuti sakit panjang dengan surat dokter.\n\nCuti tahunan yang tidak digunakan dan tidak diajukan carry over hangus pada 31 Desember. Majoo tidak memberikan kompensasi uang untuk cuti tahunan yang hangus, kecuali pada saat pemutusan hubungan kerja sesuai ketentuan perundang-undangan.",
+        "Setiap karyawan tetap memperoleh 12 hari cuti tahunan per tahun kalender. Karyawan yang bergabung setelah 1 Juli memperoleh cuti tahunan secara prorata sesuai bulan aktif.\n\nCuti tahunan mulai tersedia setelah karyawan menyelesaikan masa percobaan (probation) 3 bulan. Sebelum masa percobaan selesai, karyawan hanya dapat mengajukan izin khusus, bukan cuti tahunan.\n\nPengajuan cuti tahunan dilakukan melalui sistem HRIS minimal 3 hari kerja sebelum tanggal cuti. Pengajuan untuk cuti lebih dari 5 hari kerja berturut-turut memerlukan persetujuan dua tingkat: atasan langsung dan People Operations."
+      ],
+      "retrieved": [
+        "majo-hr/01-kebijakan-cuti",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [
+        "get_leave_balance"
+      ],
+      "called_tools": [
+        "get_leave_balance"
+      ],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 18823.3,
+      "run_id": "20261120T022950-15f94f"
+    },
+    {
+      "id": "Q05",
+      "question": "Apakah cuti tahunan bisa diuangkan?",
+      "answer": "Tidak, cuti tahunan tidak dapat diuangkan kecuali saat pemutusan hubungan kerja sesuai ketentuan perundang-undangan.  \nCuti yang hangus pada 31 Desember tidak mendapat kompensasi.  \nHal ini diatur dalam kebijakan cuti Majoo. [1]",
+      "reference": "Tidak, kecuali saat pemutusan hubungan kerja; cuti yang hangus pada 31 Desember tidak mendapat kompensasi.",
+      "contexts": [
+        "Tidak. Cuti tahunan hanya diuangkan saat pemutusan hubungan kerja sesuai ketentuan perundang-undangan. Cuti yang hangus pada 31 Desember tidak mendapat kompensasi.",
+        "Bisa, maksimal 5 hari, dan harus diajukan sebelum 20 Desember. Cuti carry over harus dipakai paling lambat 30 Juni tahun berikutnya, setelah itu hangus.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Sisa cuti tahunan maksimal 5 hari dapat dibawa ke tahun berikutnya (carry over). Carry over tidak berlaku otomatis: karyawan harus mengajukan permohonan carry over sebelum 20 Desember tahun berjalan melalui sistem HRIS.\n\nCuti carry over wajib digunakan paling lambat 30 Juni tahun berikutnya. Setelah tanggal tersebut, sisa carry over hangus dan tidak dapat diuangkan. Pengecualian hanya diberikan bila karyawan sedang menjalani cuti melahirkan atau cuti sakit panjang dengan surat dokter.\n\nCuti tahunan yang tidak digunakan dan tidak diajukan carry over hangus pada 31 Desember. Majoo tidak memberikan kompensasi uang untuk cuti tahunan yang hangus, kecuali pada saat pemutusan hubungan kerja sesuai ketentuan perundang-undangan.",
+        "Cuti tahunan dan cuti sakit dibayar penuh. Cuti tanpa upah memotong gaji secara prorata per hari kerja. Payroll cut off pada tanggal 25 setiap bulan, sehingga cuti tanpa upah yang diajukan setelah tanggal tersebut dipotong pada payroll bulan berikutnya."
+      ],
+      "retrieved": [
+        "majo-hr/01-kebijakan-cuti",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 21492.0,
+      "run_id": "20261120T023009-d3ba93"
+    },
+    {
+      "id": "Q06",
+      "question": "Berapa lama cuti melahirkan?",
+      "answer": "Cuti melahirkan di Majoo adalah **3 bulan (90 hari kalender)** dengan upah penuh.  \n- Cuti dapat dimulai 1 bulan sebelum perkiraan tanggal lahir dan sisanya setelah kelahiran. [1][2]  \n- Cuti melahirkan hanya diberikan sekali per kelahiran. [4]",
+      "reference": "Tiga bulan atau 90 hari kalender dengan upah penuh.",
+      "contexts": [
+        "Tiga bulan atau 90 hari kalender dengan upah penuh, dan dapat dimulai 1 bulan sebelum perkiraan tanggal lahir.",
+        "Karyawan perempuan berhak atas cuti melahirkan 3 bulan (90 hari kalender) dengan upah penuh. Cuti dapat diambil 1 bulan sebelum perkiraan tanggal lahir dan sisanya setelah kelahiran.\n\nCuti keguguran diberikan 6 minggu dengan surat keterangan dokter. Suami karyawan berhak atas cuti pendampingan 2 hari kerja pada saat kelahiran.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Majoo mengakui tujuh jenis ketidakhadiran berbayar:\n\n| Jenis | Kuota | Sifat |\n|---|---|---|\n| Cuti tahunan | 12 hari kerja per tahun | Akumulatif terbatas |\n| Cuti sakit | Sesuai surat dokter | Tidak mengurangi cuti tahunan |\n| Cuti melahirkan | 3 bulan | Sekali per kelahiran |\n| Cuti keguguran | 6 minggu | Dengan surat dokter |\n| Cuti menikah | 3 hari kerja | Sekali per pernikahan |\n| Cuti duka | 3 hari kerja | Keluarga inti |\n| Izin khusus | Maksimal 2 hari per kejadian | Diskresi atasan |\n\nCuti di luar daftar ini, termasuk cuti tanpa upah (unpaid leave), harus disetujui People Operations dan tercatat di perjanjian tambahan.",
+        "Tidak. Selama masa percobaan 3 bulan, karyawan belum berhak atas cuti tahunan. Karyawan masih dapat mengajukan izin khusus maksimal 2 hari per kejadian dan cuti sakit."
+      ],
+      "retrieved": [
+        "majo-hr/01-kebijakan-cuti",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 21514.7,
+      "run_id": "20261120T023031-993062"
+    },
+    {
+      "id": "Q07",
+      "question": "Berapa batas carry over cuti?",
+      "answer": "Batas carry over cuti maksimal **5 hari**.  \nMenurut kebijakan Majoo, sisa cuti tahunan maksimal 5 hari dapat dibawa ke tahun berikutnya [1][2].",
+      "reference": "Maksimal 5 hari dan harus dipakai paling lambat 30 Juni tahun berikutnya.",
+      "contexts": [
+        "Bisa, maksimal 5 hari, dan harus diajukan sebelum 20 Desember. Cuti carry over harus dipakai paling lambat 30 Juni tahun berikutnya, setelah itu hangus.",
+        "Sisa cuti tahunan maksimal 5 hari dapat dibawa ke tahun berikutnya (carry over). Carry over tidak berlaku otomatis: karyawan harus mengajukan permohonan carry over sebelum 20 Desember tahun berjalan melalui sistem HRIS.\n\nCuti carry over wajib digunakan paling lambat 30 Juni tahun berikutnya. Setelah tanggal tersebut, sisa carry over hangus dan tidak dapat diuangkan. Pengecualian hanya diberikan bila karyawan sedang menjalani cuti melahirkan atau cuti sakit panjang dengan surat dokter.\n\nCuti tahunan yang tidak digunakan dan tidak diajukan carry over hangus pada 31 Desember. Majoo tidak memberikan kompensasi uang untuk cuti tahunan yang hangus, kecuali pada saat pemutusan hubungan kerja sesuai ketentuan perundang-undangan.",
+        "Sisa cuti bersifat dinamis dan berubah setiap kali pengajuan disetujui. Angka sisa cuti tidak ditulis di dokumen kebijakan ini karena berubah per karyawan.\n\nKaryawan mengecek sisa cuti melalui sistem HRIS, atau dengan menanyakan kepada asisten HR yang terhubung ke data kepegawaian. Asisten HR dapat menampilkan kuota, cuti terpakai, cuti pending, dan carry over yang masih berlaku untuk satu employee ID.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Manajer dan karyawan senior yang bekerja pada hari libur dapat mengajukan time off in lieu dengan rasio 1 hari kerja lembur penuh = 1 hari pengganti. Saldo time off in lieu hangus 3 bulan setelah tanggal lembur."
+      ],
+      "retrieved": [
+        "majo-hr/01-kebijakan-cuti",
+        "majo-hr/02-kehadiran-dan-jam-kerja",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 15768.0,
+      "run_id": "20261120T023052-b2fa2e"
+    },
+    {
+      "id": "Q08",
+      "question": "Kapan batas pengajuan carry over cuti?",
+      "answer": "Batas pengajuan carry over cuti adalah **sebelum 20 Desember tahun berjalan**.  \nKaryawan harus mengajukan permohonan carry over melalui sistem HRIS sebelum tanggal tersebut [1][2].  \nSetelah 20 Desember, permohonan carry over tidak dapat diajukan lagi [1][2].",
+      "reference": "Sebelum 20 Desember tahun berjalan melalui sistem HRIS.",
+      "contexts": [
+        "Bisa, maksimal 5 hari, dan harus diajukan sebelum 20 Desember. Cuti carry over harus dipakai paling lambat 30 Juni tahun berikutnya, setelah itu hangus.",
+        "Sisa cuti tahunan maksimal 5 hari dapat dibawa ke tahun berikutnya (carry over). Carry over tidak berlaku otomatis: karyawan harus mengajukan permohonan carry over sebelum 20 Desember tahun berjalan melalui sistem HRIS.\n\nCuti carry over wajib digunakan paling lambat 30 Juni tahun berikutnya. Setelah tanggal tersebut, sisa carry over hangus dan tidak dapat diuangkan. Pengecualian hanya diberikan bila karyawan sedang menjalani cuti melahirkan atau cuti sakit panjang dengan surat dokter.\n\nCuti tahunan yang tidak digunakan dan tidak diajukan carry over hangus pada 31 Desember. Majoo tidak memberikan kompensasi uang untuk cuti tahunan yang hangus, kecuali pada saat pemutusan hubungan kerja sesuai ketentuan perundang-undangan.",
+        "Manajer dan karyawan senior yang bekerja pada hari libur dapat mengajukan time off in lieu dengan rasio 1 hari kerja lembur penuh = 1 hari pengganti. Saldo time off in lieu hangus 3 bulan setelah tanggal lembur.",
+        "Sisa cuti bersifat dinamis dan berubah setiap kali pengajuan disetujui. Angka sisa cuti tidak ditulis di dokumen kebijakan ini karena berubah per karyawan.\n\nKaryawan mengecek sisa cuti melalui sistem HRIS, atau dengan menanyakan kepada asisten HR yang terhubung ke data kepegawaian. Asisten HR dapat menampilkan kuota, cuti terpakai, cuti pending, dan carry over yang masih berlaku untuk satu employee ID.",
+        "Sisa cuti berbeda per karyawan dan berubah setiap ada pengajuan yang disetujui. Angkanya tidak dicantumkan di dokumen ini. Sisa cuti dicek melalui sistem HRIS atau dengan meminta asisten HR menampilkan saldo cuti untuk employee ID Anda."
+      ],
+      "retrieved": [
+        "majo-hr/01-kebijakan-cuti",
+        "majo-hr/02-kehadiran-dan-jam-kerja",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 45456.6,
+      "run_id": "20261120T023108-76811f"
+    },
+    {
+      "id": "Q09",
+      "question": "Berapa hari minimal harus ke kantor setiap minggu?",
+      "answer": "Minimal 2 hari per minggu.  \nKebijakan kerja hybrid Majoo mensyaratkan karyawan hadir di kantor minimal dua hari setiap minggu, dan hari kantor ditentukan per tim agar ada kolaborasi bersama. [1] [2]",
+      "reference": "Minimal 2 hari per minggu bekerja dari kantor.",
+      "contexts": [
+        "Minimal 2 hari per minggu. Hari kantor ditentukan per tim agar ada hari kolaborasi bersama.",
+        "Majoo menerapkan kerja hybrid: minimal 2 hari per minggu bekerja dari kantor, sisanya boleh dari mana saja di Indonesia. Hari kantor ditentukan per tim agar ada hari yang sama untuk kolaborasi.\n\nBekerja dari luar Indonesia memerlukan persetujuan People Operations karena menyangkut pajak dan asuransi. Durasi maksimal bekerja dari luar negeri adalah 30 hari kalender per tahun.",
+        "Karyawan hybrid mendapat laptop kerja dan tunjangan internet Rp300.000 per bulan. Tunjangan internet dibayarkan bersama payroll dan tidak dikenakan potongan.",
+        "Ada, Rp300.000 per bulan untuk karyawan hybrid, dibayarkan bersama payroll tanpa potongan.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja."
+      ],
+      "retrieved": [
+        "majo-hr/02-kehadiran-dan-jam-kerja",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 17141.2,
+      "run_id": "20261120T023154-89a37a"
+    },
+    {
+      "id": "Q10",
+      "question": "Berapa plafon asuransi kesehatan swasta?",
+      "answer": "Plafon asuransi kesehatan swasta di Majoo adalah Rp25.000.000 per tahun per karyawan.  \nKaryawan tetap memperoleh asuransi kesehatan swasta dengan plafon tersebut, termasuk satu pasangan resmi dan maksimal tiga anak di bawah 18 tahun.  \nKlaim asuransi swasta dilakukan langsung ke penyedia asuransi melalui aplikasi mereka. [2]",
+      "reference": "Rp25.000.000 per tahun, ditambah gigi Rp3.000.000 dan kacamata Rp1.500.000 setiap 2 tahun.",
+      "contexts": [
+        "Tidak. Asuransi kesehatan swasta menanggung karyawan, satu pasangan resmi, dan maksimal tiga anak di bawah 18 tahun.",
+        "Karyawan tetap memperoleh asuransi kesehatan swasta dengan plafon Rp25.000.000 per tahun. Tanggungan meliputi karyawan, satu pasangan resmi, dan maksimal tiga anak di bawah 18 tahun.\n\nKlaim asuransi swasta dilakukan langsung ke penyedia asuransi melalui aplikasi mereka. Majoo tidak mengganti klaim yang sudah ditolak penyedia karena masa tunggu (waiting period) 30 hari sejak tanggal pendaftaran.\n\nPerawatan gigi ditanggung maksimal Rp3.000.000 per tahun. Kacamata ditanggung maksimal Rp1.500.000 setiap 2 tahun.",
+        "Rp25.000.000 per tahun per karyawan, ditambah plafon gigi Rp3.000.000 per tahun dan kacamata Rp1.500.000 setiap 2 tahun.",
+        "Seluruh karyawan tetap terdaftar pada BPJS Kesehatan dan BPJS Ketenagakerjaan (JKK, JKM, JHT, JP). Iuran ditanggung bersama: perusahaan menanggung 4% dan karyawan 1% untuk BPJS Kesehatan, sesuai ketentuan pemerintah.\n\nKaryawan kontrak tetap terdaftar BPJS sesuai peraturan, namun tidak memperoleh asuransi kesehatan swasta tambahan.",
+        "Selain asuransi, setiap karyawan tetap mendapat tunjangan kesehatan Rp250.000 per bulan yang dapat dipakai untuk olahraga, vitamin, atau konsultasi psikolog. Tunjangan ini dibayarkan bersama payroll dan tidak perlu reimburse."
+      ],
+      "retrieved": [
+        "majo-hr/03-benefit-dan-reimbursement",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 16402.9,
+      "run_id": "20261120T023211-179757"
+    },
+    {
+      "id": "Q11",
+      "question": "Apakah orang tua ditanggung asuransi?",
+      "answer": "Tidak. Asuransi kesehatan swasta Majoo hanya menanggung karyawan, satu pasangan resmi, dan maksimal tiga anak di bawah 18 tahun. [1]",
+      "reference": "Tidak, tanggungan hanya karyawan, satu pasangan resmi, dan maksimal tiga anak di bawah 18 tahun.",
+      "contexts": [
+        "Tidak. Asuransi kesehatan swasta menanggung karyawan, satu pasangan resmi, dan maksimal tiga anak di bawah 18 tahun.",
+        "Karyawan tetap memperoleh asuransi kesehatan swasta dengan plafon Rp25.000.000 per tahun. Tanggungan meliputi karyawan, satu pasangan resmi, dan maksimal tiga anak di bawah 18 tahun.\n\nKlaim asuransi swasta dilakukan langsung ke penyedia asuransi melalui aplikasi mereka. Majoo tidak mengganti klaim yang sudah ditolak penyedia karena masa tunggu (waiting period) 30 hari sejak tanggal pendaftaran.\n\nPerawatan gigi ditanggung maksimal Rp3.000.000 per tahun. Kacamata ditanggung maksimal Rp1.500.000 setiap 2 tahun.",
+        "Seluruh karyawan tetap terdaftar pada BPJS Kesehatan dan BPJS Ketenagakerjaan (JKK, JKM, JHT, JP). Iuran ditanggung bersama: perusahaan menanggung 4% dan karyawan 1% untuk BPJS Kesehatan, sesuai ketentuan pemerintah.\n\nKaryawan kontrak tetap terdaftar BPJS sesuai peraturan, namun tidak memperoleh asuransi kesehatan swasta tambahan.",
+        "Rp25.000.000 per tahun per karyawan, ditambah plafon gigi Rp3.000.000 per tahun dan kacamata Rp1.500.000 setiap 2 tahun.",
+        "Selain asuransi, setiap karyawan tetap mendapat tunjangan kesehatan Rp250.000 per bulan yang dapat dipakai untuk olahraga, vitamin, atau konsultasi psikolog. Tunjangan ini dibayarkan bersama payroll dan tidak perlu reimburse."
+      ],
+      "retrieved": [
+        "majo-hr/03-benefit-dan-reimbursement",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 20379.5,
+      "run_id": "20261120T023227-a5ee28"
+    },
+    {
+      "id": "Q12",
+      "question": "Berapa lama proses reimbursement?",
+      "answer": "Proses reimbursement maksimal 14 hari kalender sejak pengeluaran.  \nPengajuan harus dilakukan dalam 14 hari kalender setelah pengeluaran, dan jika disetujui sebelum tanggal 20 maka pembayaran akan masuk payroll bulan yang sama; jika disetujui setelah tanggal 20, pembayaran akan masuk payroll bulan berikutnya. [2][3]",
+      "reference": "Diajukan maksimal 14 hari kalender setelah pengeluaran dan dibayar pada payroll bila disetujui sebelum tanggal 20.",
+      "contexts": [
+        "Reimbursement yang disetujui sebelum tanggal 20 dibayarkan pada payroll bulan yang sama, di luar komponen gaji dan tidak dikenakan potongan BPJS.",
+        "Maksimal 14 hari kalender sejak pengeluaran untuk pengajuan. Pencairan mengikuti payroll: disetujui sebelum tanggal 20 dibayar bulan yang sama.",
+        "Pengeluaran berikut dapat direimburse dengan bukti kuitansi asli atau faktur pajak:\n\n| Kategori | Batas per kejadian | Persetujuan |\n|---|---|---|\n| Perjalanan dinas dalam kota | Rp200.000 | Atasan langsung |\n| Akomodasi perjalanan dinas | Rp900.000 per malam | Atasan langsung |\n| Konsumsi rapat klien | Rp150.000 per orang | Atasan langsung |\n| Pembelian alat kerja kecil | Rp1.000.000 | Kepala departemen |\n| Kursus dan sertifikasi | Rp5.000.000 per tahun | People Operations |\n\nPengajuan reimbursement dilakukan maksimal 14 hari kalender setelah pengeluaran. Pengajuan lewat dari 14 hari memerlukan persetujuan People Operations dan dapat ditolak.\n\nReimbursement diproses pada payroll berikutnya bila disetujui sebelum tanggal 20. Pengajuan yang disetujui setelah tanggal 20 dibayarkan pada payroll bulan berikutnya.",
+        "Aset yang tidak dikembalikan dalam 7 hari kerja setelah hari terakhir dikenakan biaya penggantian yang dipotong dari gaji terakhir atau ditagihkan ke karyawan. Daftar aset tercatat di HRIS sejak hari pertama.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja."
+      ],
+      "retrieved": [
+        "majo-hr/03-benefit-dan-reimbursement",
+        "majo-hr/04-onboarding-dan-offboarding",
+        "majo-hr/05-faq-karyawan",
+        "majo-hr/07-performa-dan-payroll"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 19578.0,
+      "run_id": "20261120T023248-7b2aa6"
+    },
+    {
+      "id": "Q13",
+      "question": "Berapa uang harian perjalanan dinas dalam negeri?",
+      "answer": "Rp350.000 per hari.  \nPer diem perjalanan dinas dalam negeri mencakup makan dan transportasi lokal, dan tidak perlu disertai kuitansi. [1]",
+      "reference": "Rp350.000 per hari.",
+      "contexts": [
+        "Perjalanan dinas memerlukan persetujuan atasan dan tercatat di HRIS sebelum pemesanan tiket. Tiket perjalanan dinas dipesan melalui tim People Operations agar tercatat sebagai biaya perusahaan.\n\nUang harian (per diem) perjalanan dinas dalam negeri adalah Rp350.000 per hari. Per diem mencakup makan dan transportasi lokal, dan tidak perlu disertai kuitansi.\n\nPerjalanan dinas ke luar negeri mendapat per diem 50 dolar Amerika per hari. Penginapan luar negeri maksimal 150 dolar Amerika per malam.",
+        "Perjalanan dinas dihitung sebagai hari kerja. Karyawan yang melakukan perjalanan dinas pada akhir pekan berhak mengajukan time off in lieu atau uang lembur sesuai tingkat jabatan.",
+        "Pengeluaran berikut dapat direimburse dengan bukti kuitansi asli atau faktur pajak:\n\n| Kategori | Batas per kejadian | Persetujuan |\n|---|---|---|\n| Perjalanan dinas dalam kota | Rp200.000 | Atasan langsung |\n| Akomodasi perjalanan dinas | Rp900.000 per malam | Atasan langsung |\n| Konsumsi rapat klien | Rp150.000 per orang | Atasan langsung |\n| Pembelian alat kerja kecil | Rp1.000.000 | Kepala departemen |\n| Kursus dan sertifikasi | Rp5.000.000 per tahun | People Operations |\n\nPengajuan reimbursement dilakukan maksimal 14 hari kalender setelah pengeluaran. Pengajuan lewat dari 14 hari memerlukan persetujuan People Operations dan dapat ditolak.\n\nReimbursement diproses pada payroll berikutnya bila disetujui sebelum tanggal 20. Pengajuan yang disetujui setelah tanggal 20 dibayarkan pada payroll bulan berikutnya.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Ada, Rp300.000 per bulan untuk karyawan hybrid, dibayarkan bersama payroll tanpa potongan."
+      ],
+      "retrieved": [
+        "majo-hr/02-kehadiran-dan-jam-kerja",
+        "majo-hr/03-benefit-dan-reimbursement",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 19133.4,
+      "run_id": "20261120T023307-6d8325"
+    },
+    {
+      "id": "Q14",
+      "question": "Kapan THR dibayarkan dan berapa besarnya?",
+      "answer": "THR dibayarkan satu kali setahun, paling lambat 7 hari sebelum Idul Fitri [1][2].  \nBesarnya 1 kali gaji bulanan bagi karyawan yang telah bekerja 12 bulan atau lebih; bagi yang masa kerja kurang dari 12 bulan, THR dihitung secara prorata [2].  \nTHR dihitung dari gaji pokok ditambah tunjangan tetap [2].",
+      "reference": "Paling lambat 7 hari sebelum Idul Fitri, 1 kali gaji bulanan untuk masa kerja 12 bulan atau lebih.",
+      "contexts": [
+        "Paling lambat 7 hari sebelum Idul Fitri, sebesar 1 kali gaji bulanan untuk masa kerja 12 bulan atau lebih, prorata bila kurang.",
+        "THR dibayarkan satu kali setahun, paling lambat 7 hari sebelum hari raya Idul Fitri, sesuai ketentuan pemerintah. Besaran THR adalah 1 kali gaji bulanan untuk karyawan dengan masa kerja 12 bulan atau lebih.\n\nKaryawan dengan masa kerja kurang dari 12 bulan memperoleh THR secara prorata. THR dihitung dari gaji pokok ditambah tunjangan tetap.",
+        "Gaji terakhir dibayarkan pada payroll bulan berikutnya setelah hari terakhir kerja, bersama penyelesaian cuti tahunan yang belum digunakan. Kompensasi cuti tahunan dihitung berdasarkan ketentuan perundang-undangan yang berlaku.",
+        "Slip gaji tersedia di HRIS setiap tanggal 25 dan dikirim ke email perusahaan. Slip gaji tidak dikirim melalui aplikasi pesan pribadi.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja."
+      ],
+      "retrieved": [
+        "majo-hr/03-benefit-dan-reimbursement",
+        "majo-hr/04-onboarding-dan-offboarding",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 14039.1,
+      "run_id": "20261120T023327-e87c43"
+    },
+    {
+      "id": "Q15",
+      "question": "Bolehkah cuti tahunan saat masa percobaan?",
+      "answer": "Tidak, karyawan tidak berhak atas cuti tahunan selama masa percobaan.  \nSelama masa percobaan 3 bulan, karyawan belum berhak atas cuti tahunan.  \nKaryawan hanya dapat mengajukan izin khusus maksimal 2 hari per kejadian dan cuti sakit. [1][2]",
+      "reference": "Tidak, cuti tahunan baru berlaku setelah lulus masa percobaan 3 bulan.",
+      "contexts": [
+        "Tidak. Selama masa percobaan 3 bulan, karyawan belum berhak atas cuti tahunan. Karyawan masih dapat mengajukan izin khusus maksimal 2 hari per kejadian dan cuti sakit.",
+        "Masa percobaan berlangsung 3 bulan dan dapat diperpanjang satu kali maksimal 3 bulan dengan pemberitahuan tertulis. Selama masa percobaan, karyawan belum berhak atas cuti tahunan, namun berhak atas cuti sakit dan izin khusus.\n\nKaryawan yang lulus masa percobaan memperoleh surat konfirmasi dan cuti tahunan mulai berlaku. Karyawan yang tidak lulus menerima pemberitahuan tertulis 7 hari sebelum masa percobaan berakhir.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Setiap karyawan tetap memperoleh 12 hari cuti tahunan per tahun kalender. Karyawan yang bergabung setelah 1 Juli memperoleh cuti tahunan secara prorata sesuai bulan aktif.\n\nCuti tahunan mulai tersedia setelah karyawan menyelesaikan masa percobaan (probation) 3 bulan. Sebelum masa percobaan selesai, karyawan hanya dapat mengajukan izin khusus, bukan cuti tahunan.\n\nPengajuan cuti tahunan dilakukan melalui sistem HRIS minimal 3 hari kerja sebelum tanggal cuti. Pengajuan untuk cuti lebih dari 5 hari kerja berturut-turut memerlukan persetujuan dua tingkat: atasan langsung dan People Operations.",
+        "Bisa, maksimal 5 hari, dan harus diajukan sebelum 20 Desember. Cuti carry over harus dipakai paling lambat 30 Juni tahun berikutnya, setelah itu hangus."
+      ],
+      "retrieved": [
+        "majo-hr/01-kebijakan-cuti",
+        "majo-hr/04-onboarding-dan-offboarding",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 22402.2,
+      "run_id": "20261120T023341-c741be"
+    },
+    {
+      "id": "Q16",
+      "question": "Berapa lama notice period karyawan tetap?",
+      "answer": "30 hari kalender.  \nKaryawan tetap wajib memberikan pemberitahuan tertulis minimal 30 hari kalender sebelum tanggal berhenti [1][2].  \nJika notice period dipersingkat, pemotongan gaji akan dilakukan sesuai hari yang tidak dipenuhi [2].",
+      "reference": "Minimal 30 hari kalender sebelum tanggal berhenti.",
+      "contexts": [
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Karyawan tetap wajib memberikan pemberitahuan tertulis minimal 30 hari kalender sebelum tanggal berhenti. Karyawan kontrak mengikuti ketentuan di perjanjian kerja, umumnya 14 hari kalender.\n\nNotice period dapat dipersingkat dengan persetujuan atasan, dengan konsekuensi pemotongan gaji sesuai hari yang tidak dipenuhi.",
+        "Masa percobaan berlangsung 3 bulan dan dapat diperpanjang satu kali maksimal 3 bulan dengan pemberitahuan tertulis. Selama masa percobaan, karyawan belum berhak atas cuti tahunan, namun berhak atas cuti sakit dan izin khusus.\n\nKaryawan yang lulus masa percobaan memperoleh surat konfirmasi dan cuti tahunan mulai berlaku. Karyawan yang tidak lulus menerima pemberitahuan tertulis 7 hari sebelum masa percobaan berakhir.",
+        "Paling lambat 7 hari sebelum Idul Fitri, sebesar 1 kali gaji bulanan untuk masa kerja 12 bulan atau lebih, prorata bila kurang.",
+        "Tidak. Selama masa percobaan 3 bulan, karyawan belum berhak atas cuti tahunan. Karyawan masih dapat mengajukan izin khusus maksimal 2 hari per kejadian dan cuti sakit."
+      ],
+      "retrieved": [
+        "majo-hr/04-onboarding-dan-offboarding",
+        "majo-hr/05-faq-karyawan"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 17750.6,
+      "run_id": "20261120T023403-064f12"
+    },
+    {
+      "id": "Q17",
+      "question": "Apa sanksi kalau aset perusahaan tidak dikembalikan?",
+      "answer": "Sanksinya adalah biaya penggantian yang dipotong dari gaji terakhir atau ditagihkan ke karyawan.  \nAset yang tidak dikembalikan dalam 7 hari kerja setelah hari terakhir dikenakan biaya tersebut. [1]",
+      "reference": "Dikenakan biaya penggantian yang dipotong dari gaji terakhir atau ditagihkan ke karyawan bila lewat 7 hari kerja.",
+      "contexts": [
+        "Aset yang tidak dikembalikan dalam 7 hari kerja setelah hari terakhir dikenakan biaya penggantian yang dipotong dari gaji terakhir atau ditagihkan ke karyawan. Daftar aset tercatat di HRIS sejak hari pertama.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Karyawan wajib menjaga kerahasiaan data pelanggan, data karyawan, kode sumber, dan informasi keuangan. Data pelanggan tidak boleh disalin ke perangkat pribadi atau dikirim melalui akun pribadi.",
+        "Hadiah bernilai di bawah Rp500.000 boleh diterima dan tidak perlu dilaporkan. Hadiah di atas batas tersebut dilaporkan ke People Operations dan diserahkan ke perusahaan atau dilelang untuk kegiatan sosial.",
+        "Sanksi diberikan berjenjang: teguran lisan, surat peringatan pertama, surat peringatan kedua, dan pemutusan hubungan kerja. Pelanggaran berat seperti penipuan, penyuapan, dan pelecehan dapat langsung berujung pemutusan hubungan kerja."
+      ],
+      "retrieved": [
+        "majo-hr/04-onboarding-dan-offboarding",
+        "majo-hr/05-faq-karyawan",
+        "majo-hr/06-kode-etik-dan-data"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 31260.0,
+      "run_id": "20261120T023421-aac7b0"
+    },
+    {
+      "id": "Q18",
+      "question": "Berapa batas hadiah dari vendor yang boleh diterima tanpa laporan?",
+      "answer": "Batas hadiah dari vendor yang boleh diterima tanpa laporan adalah **Rp500.000**.  \nHadiah di bawah Rp500.000 dapat diterima tanpa pelaporan [1].  \nHadiah di atas Rp500.000 harus dilaporkan ke People Operations [2].",
+      "reference": "Hadiah di bawah Rp500.000 tidak perlu dilaporkan.",
+      "contexts": [
+        "Hadiah bernilai di bawah Rp500.000 boleh diterima dan tidak perlu dilaporkan. Hadiah di atas batas tersebut dilaporkan ke People Operations dan diserahkan ke perusahaan atau dilelang untuk kegiatan sosial.",
+        "Karyawan wajib melaporkan konflik kepentingan ke atasan dan People Operations, termasuk:\n\n- Memiliki usaha yang menjadi vendor atau kompetitor Majoo.\n- Menerima hadiah atau jamuan bernilai lebih dari Rp500.000 dari vendor atau pelanggan.\n- Mempekerjakan anggota keluarga langsung di tim yang dipimpinnya.\n- Menjadi konsultan atau penasihat di perusahaan lain tanpa persetujuan.\n\nPelanggaran pelaporan konflik kepentingan dikenakan tindakan disiplin, termasuk pemutusan hubungan kerja pada kasus berat.",
+        "Majoo tidak memberikan atau menerima suap dalam bentuk apa pun, termasuk pembayaran tidak resmi untuk mempercepat proses perizinan. Pelanggaran dilaporkan melalui kanal whistleblowing.",
+        "Karyawan hybrid mendapat laptop kerja dan tunjangan internet Rp300.000 per bulan. Tunjangan internet dibayarkan bersama payroll dan tidak dikenakan potongan.",
+        "Ada, Rp300.000 per bulan untuk karyawan hybrid, dibayarkan bersama payroll tanpa potongan."
+      ],
+      "retrieved": [
+        "majo-hr/02-kehadiran-dan-jam-kerja",
+        "majo-hr/05-faq-karyawan",
+        "majo-hr/06-kode-etik-dan-data"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 18521.6,
+      "run_id": "20261120T023452-07520a"
+    },
+    {
+      "id": "Q19",
+      "question": "Berapa lama investigasi laporan whistleblowing?",
+      "answer": "Investigasi laporan whistleblowing dilakukan maksimal 30 hari kalender sejak laporan diterima.  \nLaporan dapat dikirim ke ethics@majo.example.  \nLaporan dapat anonim, dan identitas pelapor dilindungi. [1]",
+      "reference": "Maksimal 30 hari kalender sejak laporan diterima.",
+      "contexts": [
+        "Laporan pelanggaran dapat dikirim ke ethics@majo.example. Laporan dapat anonim, dan identitas pelapor dilindungi. Investigasi dilakukan maksimal 30 hari kalender sejak laporan diterima.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Majoo tidak menoleransi pelecehan seksual, perundungan, dan diskriminasi. Laporan dapat disampaikan ke atasan, People Operations, atau kanal whistleblowing. Investigasi dijalankan dengan prinsip praduga tak bersalah dan kerahasiaan pihak yang melapor.",
+        "Majoo tidak memberikan atau menerima suap dalam bentuk apa pun, termasuk pembayaran tidak resmi untuk mempercepat proses perizinan. Pelanggaran dilaporkan melalui kanal whistleblowing.",
+        "Sanksi diberikan berjenjang: teguran lisan, surat peringatan pertama, surat peringatan kedua, dan pemutusan hubungan kerja. Pelanggaran berat seperti penipuan, penyuapan, dan pelecehan dapat langsung berujung pemutusan hubungan kerja."
+      ],
+      "retrieved": [
+        "majo-hr/05-faq-karyawan",
+        "majo-hr/06-kode-etik-dan-data"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 17946.5,
+      "run_id": "20261120T023511-fdd170"
+    },
+    {
+      "id": "Q20",
+      "question": "Tanggal berapa gaji dibayarkan?",
+      "answer": "Gaji dibayarkan setiap tanggal 25.  \nJika tanggal 25 jatuh pada hari libur, gaji dibayarkan pada hari kerja sebelumnya. [1]",
+      "reference": "Setiap tanggal 25, atau hari kerja sebelumnya bila tanggal 25 jatuh pada hari libur.",
+      "contexts": [
+        "Gaji dibayarkan setiap tanggal 25. Bila tanggal 25 jatuh pada hari libur, gaji dibayarkan pada hari kerja sebelumnya.\n\nPayroll cut off tanggal 20. Perubahan data yang masuk setelah tanggal 20 (rekening, status pajak, potongan) berlaku pada payroll bulan berikutnya.",
+        "Paling lambat 7 hari sebelum Idul Fitri, sebesar 1 kali gaji bulanan untuk masa kerja 12 bulan atau lebih, prorata bila kurang.",
+        "Slip gaji tersedia di HRIS setiap tanggal 25 dan dikirim ke email perusahaan. Slip gaji tidak dikirim melalui aplikasi pesan pribadi.",
+        "Gaji terakhir dibayarkan pada payroll bulan berikutnya setelah hari terakhir kerja, bersama penyelesaian cuti tahunan yang belum digunakan. Kompensasi cuti tahunan dihitung berdasarkan ketentuan perundang-undangan yang berlaku.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja."
+      ],
+      "retrieved": [
+        "majo-hr/04-onboarding-dan-offboarding",
+        "majo-hr/05-faq-karyawan",
+        "majo-hr/07-performa-dan-payroll"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 17310.4,
+      "run_id": "20261120T023529-2cf698"
+    },
+    {
+      "id": "Q21",
+      "question": "Apakah bisa kasbon atau pinjaman karyawan?",
+      "answer": "Tidak, Majoo tidak menyediakan kasbon maupun pinjaman karyawan.  \nMajoo tidak menyediakan kasbon, pinjaman karyawan berbunga 0%, tunjangan kendaraan, tunjangan perumahan, maupun saham perusahaan untuk level staf.  \nKebutuhan mendesak dapat dibicarakan dengan People Operations untuk skema bantuan khusus yang diputuskan kasus per kasus. [1][2][3]",
+      "reference": "Tidak, Majoo tidak menyediakan kasbon maupun pinjaman karyawan.",
+      "contexts": [
+        "Majoo tidak menyediakan kasbon maupun pinjaman karyawan. Kebutuhan mendesak dapat dibicarakan dengan People Operations untuk skema bantuan khusus yang diputuskan kasus per kasus.",
+        "Tidak. Majoo tidak menyediakan pinjaman karyawan berbunga 0% maupun tunjangan kendaraan dan perumahan.",
+        "Majoo tidak menyediakan: tunjangan kendaraan, tunjangan perumahan, pinjaman karyawan berbunga 0%, dan saham perusahaan untuk level staf. Permintaan di luar daftar ini tidak dapat diproses.",
+        "Maksimal 14 hari kalender sejak pengeluaran untuk pengajuan. Pencairan mengikuti payroll: disetujui sebelum tanggal 20 dibayar bulan yang sama.",
+        "Paling lambat 7 hari sebelum Idul Fitri, sebesar 1 kali gaji bulanan untuk masa kerja 12 bulan atau lebih, prorata bila kurang."
+      ],
+      "retrieved": [
+        "majo-hr/03-benefit-dan-reimbursement",
+        "majo-hr/05-faq-karyawan",
+        "majo-hr/07-performa-dan-payroll"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 12653.1,
+      "run_id": "20261120T023546-8b0a46"
+    },
+    {
+      "id": "Q22",
+      "question": "Berapa lama durasi PIP?",
+      "answer": "Durasi PIP adalah **60 hari**.  \nPIP berlaku bila performa berada pada tingkat Below Expectation selama satu siklus, dan durasinya ditetapkan 60 hari dengan target terukur serta pendampingan mingguan. [1]",
+      "reference": "60 hari dengan target terukur dan pendampingan mingguan.",
+      "contexts": [
+        "PIP berlaku bila performa berada pada tingkat Below Expectation selama satu siklus. Durasi PIP 60 hari dengan target terukur dan pendampingan mingguan.\n\nBila target PIP tidak tercapai, perusahaan dapat memindahkan karyawan ke peran lain atau melakukan pemutusan hubungan kerja sesuai ketentuan hukum.",
+        "Karyawan tetap 30 hari kalender, karyawan kontrak umumnya 14 hari kalender sesuai perjanjian kerja.",
+        "Karyawan tetap wajib memberikan pemberitahuan tertulis minimal 30 hari kalender sebelum tanggal berhenti. Karyawan kontrak mengikuti ketentuan di perjanjian kerja, umumnya 14 hari kalender.\n\nNotice period dapat dipersingkat dengan persetujuan atasan, dengan konsekuensi pemotongan gaji sesuai hari yang tidak dipenuhi.",
+        "Maksimal 14 hari kalender sejak pengeluaran untuk pengajuan. Pencairan mengikuti payroll: disetujui sebelum tanggal 20 dibayar bulan yang sama.",
+        "Paling lambat 7 hari sebelum Idul Fitri, sebesar 1 kali gaji bulanan untuk masa kerja 12 bulan atau lebih, prorata bila kurang."
+      ],
+      "retrieved": [
+        "majo-hr/04-onboarding-dan-offboarding",
+        "majo-hr/05-faq-karyawan",
+        "majo-hr/07-performa-dan-payroll"
+      ],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": false,
+      "refused": false,
+      "refusal_ok": true,
+      "cited": true,
+      "tool_only": false,
+      "latency_ms": 19269.7,
+      "run_id": "20261120T023559-1bdd8d"
+    },
+    {
+      "id": "Q23",
+      "question": "Siapa presiden direktur perusahaan pesaing kami?",
+      "answer": "Maaf, saya tidak tahu. Informasi itu tidak ada di dokumen HR yang saya akses.",
+      "reference": "Tidak ada di dokumen.",
+      "contexts": [],
+      "retrieved": [],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": true,
+      "refused": true,
+      "refusal_ok": true,
+      "cited": false,
+      "tool_only": false,
+      "latency_ms": 637.4,
+      "run_id": "20261120T023618-ddf3ca"
+    },
+    {
+      "id": "Q24",
+      "question": "Berapa harga saham Majoo di bursa?",
+      "answer": "Maaf, saya tidak tahu. Informasi itu tidak ada di dokumen HR yang saya akses.",
+      "reference": "Tidak ada di dokumen.",
+      "contexts": [],
+      "retrieved": [],
+      "expected_tools": [],
+      "called_tools": [],
+      "tools_ok": true,
+      "expect_refusal": true,
+      "refused": true,
+      "refusal_ok": true,
+      "cited": false,
+      "tool_only": false,
+      "latency_ms": 2485.7,
+      "run_id": "20261120T023619-b5ea64"
+    },
+    {
+      "id": "Q25",
+      "question": "Berapa sisa cuti EMP-777?",
+      "answer": "Maaf, saya tidak tahu. Informasi itu tidak ada di dokumen HR yang saya akses.",
+      "reference": "Employee ID tidak ditemukan, agent harus menyatakan tidak tahu.",
+      "contexts": [],
+      "retrieved": [],
+      "expected_tools": [
+        "get_leave_balance"
+      ],
+      "called_tools": [
+        "get_leave_balance"
+      ],
+      "tools_ok": true,
+      "expect_refusal": true,
+      "refused": true,
+      "refusal_ok": true,
+      "cited": false,
+      "tool_only": true,
+      "latency_ms": 18610.9,
+      "run_id": "20261120T023621-2fca9a"
+    }
+  ]
+}

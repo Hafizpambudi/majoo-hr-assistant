@@ -17,7 +17,11 @@ class Settings(BaseSettings):
     )
 
     groq_api_key: str = ""
+    groq_api_key_1: str = ""
     groq_model: str = "openai/gpt-oss-120b"
+    # Free-tier orgs differ: one key may allow 200k tokens/day while another
+    # allows only 8k tokens/minute. The pool rotates on a daily cap.
+    groq_tpm_limit: int = 8000
     openrouter_api_key: str = ""
 
     # Ordered pool. Ingest rotates to the next key when one hits its daily
@@ -54,6 +58,17 @@ class Settings(BaseSettings):
     # The Gemini free tier meters content items, not requests. 95 leaves a
     # margin for the query embedding that shares the same quota.
     embedding_rpm_limit: int = 95
+
+    @property
+    def groq_api_keys(self) -> list[str]:
+        """Ordered key pool. The plain key is tried first, then the numbered ones."""
+        candidates = [self.groq_api_key, self.groq_api_key_1]
+        ordered: list[str] = []
+        for key in candidates:
+            key = key.strip()
+            if key and key not in ordered:
+                ordered.append(key)
+        return ordered
 
     @property
     def gemini_api_keys(self) -> list[str]:

@@ -9,6 +9,7 @@ runnable offline and in CI without an API key.
 from __future__ import annotations
 
 import hashlib
+import threading
 import time
 from abc import ABC, abstractmethod
 from collections import deque
@@ -49,6 +50,10 @@ class GeminiEmbedder(Embedder):
         self._batch = settings.embedding_batch_size
         self._rpm_limit = settings.embedding_rpm_limit
         self._sent: deque[tuple[float, int]] = deque()
+        # The rate window and the active-key pointer are shared state. Ragas
+        # embeds from several worker threads, and without this two threads can
+        # each see a 429, each rotate, and retire every key in the pool.
+        self._lock = threading.Lock()
 
     @property
     def key_count(self) -> int:
@@ -89,45 +94,46 @@ class GeminiEmbedder(Embedder):
         from google import genai
         from google.genai import types
 
-        attempts = 0
-        while True:
-            attempts += 1
-            if attempts > len(self._keys) * 3 + 5:
-                raise QuotaExhausted("retry budget spent without a usable key")
+        with self._lock:
+            attempts = 0
+            while True:
+                attempts += 1
+                if attempts > len(self._keys) * 3 + 5:
+                    raise QuotaExhausted("retry budget spent without a usable key")
 
-            self._throttle(len(texts))
-            try:
-                response = self._clients[self._active].models.embed_content(
-                    model=self._model,
-                    # Each text must be its own list: a flat list of strings is
-                    # treated as one multi-part content and returns a single
-                    # embedding.
-                    contents=[[text] for text in texts],
-                    config=types.EmbedContentConfig(
-                        task_type=task_type,
-                        output_dimensionality=self.dim,
-                    ),
-                )
-            except genai.errors.ClientError as exc:
-                message = str(exc)
-                if exc.code != 429:
+                self._throttle(len(texts))
+                try:
+                    response = self._clients[self._active].models.embed_content(
+                        model=self._model,
+                        # Each text must be its own list: a flat list of strings
+                        # is treated as one multi-part content and returns a
+                        # single embedding.
+                        contents=[[text] for text in texts],
+                        config=types.EmbedContentConfig(
+                            task_type=task_type,
+                            output_dimensionality=self.dim,
+                        ),
+                    )
+                except genai.errors.ClientError as exc:
+                    message = str(exc)
+                    if exc.code != 429:
+                        raise
+                    # The API returns 429 for both limits; only the message says
+                    # which. A daily cap needs a different key, a per-minute cap
+                    # just needs patience.
+                    if "per day" in message or "PerDay" in message:
+                        self._rotate(self._active, "daily")
+                        continue
+                    if "per minute" in message or "PerMinute" in message:
+                        time.sleep(20)
+                        continue
                     raise
-                # The API returns 429 for both limits; only the message says
-                # which. A daily cap needs a different key, a per-minute cap
-                # just needs patience.
-                if "per day" in message or "PerDay" in message:
-                    self._rotate(self._active, "daily")
-                    continue
-                if "per minute" in message or "PerMinute" in message:
-                    time.sleep(20)
-                    continue
-                raise
 
-            if len(response.embeddings) != len(texts):
-                raise RuntimeError(
-                    f"expected {len(texts)} embeddings, got {len(response.embeddings)}"
-                )
-            return [list(e.values) for e in response.embeddings]
+                if len(response.embeddings) != len(texts):
+                    raise RuntimeError(
+                        f"expected {len(texts)} embeddings, got {len(response.embeddings)}"
+                    )
+                return [list(e.values) for e in response.embeddings]
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         out: list[list[float]] = []
