@@ -1,5 +1,7 @@
 # Majoo HR Assistant — RAG + MCP take-home
 
+Bahasa Indonesia (ringkas): [README.id.md](README.id.md)
+
 Internal HR chatbot for PT Majoo Teknologi Indonesia. Answers employee questions
 from the HR document corpus, calls live HR tools over MCP when a question needs
 employee data, and refuses instead of guessing when the documents do not cover it.
